@@ -39,7 +39,7 @@ for msgRaw in sys.stdin:
     elif msgRaw[0] == '-': # Subtração
         operador = b'0'
         
-     # Qualquer coisa além fecha a conexão
+    # Qualquer coisa além fecha a conexão
     else:
         csocket.shutdown(socket.SHUT_RDWR)
         csocket.close()
