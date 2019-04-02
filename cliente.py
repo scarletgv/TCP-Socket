@@ -20,7 +20,6 @@ porta = int(sys.argv[2])
 
 # Criação do socket
 csocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#csocket.settimeout(15)
 
 # Timeout após 15 segundos
 tempo = struct.pack('ll', 15, 0)
