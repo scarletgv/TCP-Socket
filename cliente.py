@@ -20,20 +20,18 @@ porta = int(sys.argv[2])
 
 # Criação do socket
 csocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#csocket.settimeout(15)
+
+# Timeout após 15 segundos
+tempo = struct.pack('ll', 15, 0)
+csocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, tempo)
 
 # Conexão
 endServidor = (enderecoIP, porta)
 csocket.connect(endServidor)
 
-# Timeout após 15 segundos
-tempo = struct.pack('LL', 15, 0)
-csocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, tempo)
-
 # Comunicação
-while True:
-    
-    # Leitura da operação a ser realizada
-    msgRaw = input("Operação: ")
+for msgRaw in sys.stdin:
     
     # Definindo o operador
     if msgRaw[0] == '+':   # Adição
@@ -42,7 +40,7 @@ while True:
     elif msgRaw[0] == '-': # Subtração
         operador = b'0'
         
-     # Qualquer coisa além indica que não há mais operações a serem feitas
+     # Qualquer coisa além fecha a conexão
     else:
         csocket.shutdown(socket.SHUT_RDWR)
         csocket.close()
