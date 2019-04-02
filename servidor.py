@@ -20,6 +20,10 @@ porta = int(sys.argv[1])
 # Criação do socket
 ssocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# Timeout após 15 segundos
+tempo = struct.pack('ll', 15, 0)
+ssocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, tempo)
+
 # Conexão
 endereco = ("", porta)
 ssocket.bind(endereco)
