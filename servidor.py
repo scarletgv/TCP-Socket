@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 '''
 UFMG - ICEx - DCC - Redes de Computadores - 2019/1
 Aluna: Scarlet Gianasi Viana
@@ -7,51 +9,47 @@ Matrícula: 2016006891
 Versão utilizada: Python 3.6.7
 
 '''
+
 import socket
 import sys
 import struct
 
-MAX_CLIENTES    = 10
-MSG_TAMANHO_MAX = 100
-total = 0
-
-# Leitura da porta a ser atribuida ao servidor
-if len(sys.argv) < 2:
-    print("python servidor.py [PORTA]")
+# Recebe a porta como argumento
 porta = int(sys.argv[1])
 
-# Criacao do socket
+# Criação do socket
 ssocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Timeout
-tempo = struct.pack('LL', 15, 0)
-ssocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, tempo)
-
-# Abertura passiva
+# Conexão
 endereco = ("", porta)
 ssocket.bind(endereco)
-ssocket.listen(MAX_CLIENTES)
+ssocket.listen(10)
+
+# Inicialização do contador global
+total = 0
 
 while True:
-    print("Esperando por novo cliente...")
+    print("Esperando um cliente...")
 
     csocket, cliente = ssocket.accept()
     print("Conectado a {}".format(cliente))
     
-    # Comunicacao
+    # Comunicação
     while True:
-        msg_bytes = csocket.recv(5) # Recebe a mensagem do cliente
+        # Recebe a mensagem do cliente
+        msgCliente = csocket.recv(5)
         
-        if not msg_bytes:
-            print("Falha ao receber uma mensagem")
+        if not msgCliente:
+            print("Falha ao receber a mensagem do cliente.")
             break
         
-        msg = struct.unpack('=cI', msg_bytes) # Unpack a mensagem em um char e um inteiro
+        # Desempacota os bytes recebidos do cliente
+        msg = struct.unpack('!ci', msgCliente)
          
-        # Definindo a operação
-        if msg[0] == b'1':
+        # Definindo e executando a operação
+        if msg[0] == b'1':         # Adicao
             total = total + msg[1]
-        else:
+        else:                      # Subtração
             total = total - msg[1]
         
         # Complemento
@@ -62,10 +60,12 @@ while True:
         if total >= 1000000:
             total = total%1000000
         
-        msg = struct.pack('=i', total)
-        nbytes = csocket.send(msg)
+        resultado = str(total)
+        
+        # Empacotando o resultado para enviar ao cliente
+        msgResult = struct.pack('!6s', resultado.encode('ascii'))
+        msgServidor = csocket.send(msgResult)
 
-    # Finalizacao
     csocket.close()
 
 ssocket.close()
