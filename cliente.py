@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 '''
 UFMG - ICEx - DCC - Redes de Computadores - 2019/1
 Aluna: Scarlet Gianasi Viana
@@ -7,53 +9,59 @@ Matrícula: 2016006891
 Versão utilizada: Python 3.6.7
 
 '''
+
 import socket
 import sys
 import struct
 
-MSG_TAMANHO_MAX = 100
-
-# Leitura da porta a ser atribuida ao servidor
-if len(sys.argv) < 3:
-    print("python cliente.py [ENDERECO] [PORTA]")
+# Recebe o IP e a porta como argumentos
 enderecoIP = sys.argv[1]
-porta      = int(sys.argv[2])
+porta = int(sys.argv[2])
 
-# Criacao do socket
+# Criação do socket
 csocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Conexao (abertura ativa)
+# Conexão
 endServidor = (enderecoIP, porta)
 csocket.connect(endServidor)
-# Timeout
+
+# Timeout após 15 segundos
 tempo = struct.pack('LL', 15, 0)
 csocket.setsockopt(socket.SOL_SOCKET, socket.SO_RCVTIMEO, tempo)
 
-# Comunicacao
+# Comunicação
 while True:
-    msgRaw = input("Operação: ") #Input do cliente
     
-    if msgRaw[0] == '+': # Definindo a operacao
-        op = b'1'
-    elif msgRaw[0] == '-':
-        op = b'0'
-    else: 
+    # Leitura da operação a ser realizada
+    msgRaw = input("Operação: ")
+    
+    # Definindo o operador
+    if msgRaw[0] == '+':   # Adição
+        operador = b'1'
+        
+    elif msgRaw[0] == '-': # Subtração
+        operador = b'0'
+        
+     # Qualquer coisa além indica que não há mais operações a serem feitas
+    else:
         csocket.shutdown(socket.SHUT_RDWR)
         csocket.close()
         break
-   
-    msg = struct.pack('=cI', op, int(msgRaw.split(' ')[1]))
-        
-    nbytes = csocket.send(msg)
     
-    msg = csocket.recv(5)
-        
-    msgUnp = struct.unpack('=i', msg)
-        
+    operando = int(msgRaw.split(' ')[1])
+   
+    # Empacotando o operando e operador em 5 bytes e enviando para o servidor
+    operacao = struct.pack('!ci', operador, operando)        
+    msg = csocket.send(operacao)
+    
+    # Recebe a string com 6 bytes com o resultado da operação do servidor
+    msgServidor = csocket.recv(6)
+         
     if not msg:
-        print("Falha ao receber uma mensagem")
+        print("Falha ao receber a mensagem do servidor.")
         break
-    print("Resultado: "+ str(msgUnp[0]))
-
+    
+    # Impressão do resultado na tela
+    print(msgServidor.decode("ascii"))
 
 csocket.close()
